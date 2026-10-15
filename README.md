@@ -4,6 +4,7 @@
 > 🌐 **GitHub Pages 互動式網站：** [https://yuwen0621.github.io/1014_DIC/](https://yuwen0621.github.io/1014_DIC/)  
 > 📦 **Kaggle 資料集來源：** [Student Performance Prediction Machine Learning Challenge](https://www.kaggle.com/competitions/student-performance-prediction-machine-learning-challenge/data)  
 > 🏫 **課程：** 資料推論與計算 (Data Inference & Computing, DIC) — 作業二：多元線性迴歸 (Multiple Linear Regression)
+<img width="1320" height="13121" alt="yuwen0621 github io_1014hw2_" src="https://github.com/user-attachments/assets/ac2d179d-2060-4746-a7f1-3ad18c3b0702" />
 
 ---
 
