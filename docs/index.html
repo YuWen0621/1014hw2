@@ -17,10 +17,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
   <!-- Project Custom CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
 
   <!-- Calculated Model Data from local CSV (No hardcoding) -->
-  <script src="model_data.js"></script>
+  <script src="model_data.js?v=2"></script>
 </head>
 <body>
 
@@ -65,7 +65,7 @@
       <div class="dataset-switcher-info" id="datasetQuickSummary">
         <span class="badge-tag badge-blue"><i class="fa-solid fa-layer-group"></i> 16,000 Rows • 17 Predictors (k=1..17)</span>
         <span class="badge-tag badge-purple"><i class="fa-solid fa-rotate"></i> 5-Fold Cross Validation</span>
-        <span class="badge-tag badge-green"><i class="fa-solid fa-award"></i> Optimal Sweet Spot: k = 6</span>
+        <span class="badge-tag badge-green"><i class="fa-solid fa-award"></i> Best-Case Sweet Spot: k = 6 (LassoCV)</span>
         <span class="badge-tag badge-amber"><i class="fa-solid fa-shield-halved"></i> 95% Prediction Interval</span>
       </div>
     </div>
@@ -74,13 +74,13 @@
     <div class="hero-card">
       <h2 id="heroTitle">Feature Selection & Parsimony Analysis</h2>
       <p id="heroDescription">
-        Compare 6 Machine Learning Feature Selection Algorithms (<strong>Pearson Correlation</strong>, <strong>Forward SFS</strong>, <strong>LassoCV</strong>, <strong>RFECV</strong>, <strong>Exhaustive Search</strong>, and <strong>Baseline OLS</strong>) trained strictly on 80% partitioned training data. Pinpoint the <strong>6-feature optimal sweet spot</strong> (Study Hours, Focus Score, Sleep Hours, Phone Usage, Stress Level, Attendance Percentage) which achieves near-zero RMSE and R² ≈ 1.000, revealing the true underlying productivity equation while rejecting 11 noisy distractor attributes.
+        Compare 6 Machine Learning Feature Selection Algorithms (<strong>Pearson Correlation</strong>, <strong>Forward SFS</strong>, <strong>LassoCV</strong>, <strong>RFECV</strong>, <strong>Exhaustive Search</strong>, and <strong>Baseline OLS</strong>) trained strictly on 80% partitioned training data. Each algorithm identifies its own optimal sweet spot: <strong>LassoCV reaches near-zero RMSE earliest at k = 6</strong>, Forward SFS at k = 7, and Pearson Correlation at k = 8 — all converging on the same 6 core predictors (Study Hours, Focus Score, Sleep Hours, Phone Usage, Stress Level, Attendance Percentage) that reveal the true underlying productivity equation.
       </p>
       <div class="hero-tags" id="heroTagsContainer">
         <span class="hero-pill"><i class="fa-solid fa-database"></i> 16,000 Samples (80/20 Train-Test Split)</span>
         <span class="hero-pill"><i class="fa-solid fa-rotate"></i> 5-Fold Cross Validation</span>
         <span class="hero-pill"><i class="fa-solid fa-layer-group"></i> 6 Selection Strategies</span>
-        <span class="hero-pill"><i class="fa-solid fa-star" style="color: #34d399;"></i> Global Sweet Spot: k = 6 (RMSE ≈ 0.0029, R² = 1.0000)</span>
+        <span class="hero-pill"><i class="fa-solid fa-star" style="color: #34d399;"></i> Best-Case Sweet Spot: k = 6 (LassoCV, RMSE ≈ 0.0029, R² = 1.0000)</span>
         <span class="hero-pill"><i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> 95% Prediction Interval (100.0% Empirical Coverage)</span>
       </div>
     </div>
@@ -221,7 +221,7 @@
         </div>
       </div>
       <div id="parsimonyNotice" class="badge-tag badge-green" style="font-size: 12px; padding: 6px 14px;">
-        <i class="fa-solid fa-star"></i> Occam's Razor: 6-feature model minimizes cross-validation and test RMSE.
+        <i class="fa-solid fa-star"></i> Occam's Razor: LassoCV identifies k = 6 as the best-case sweet spot; Pearson (k=8) and Forward SFS (k=7) also converge on the same 6 core features.
       </div>
     </div>
 
@@ -232,7 +232,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <h3><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> RMSE by Number of Features</h3>
-            <div class="card-subtitle" id="rmseChartSubtitle">Lower is better. Sharp drop to valley at k=6, flat floor for k &gt; 6.</div>
+            <div class="card-subtitle" id="rmseChartSubtitle">Lower is better. Each method has its own optimal k: LassoCV k=6, Forward SFS k=7, Pearson k=8.</div>
           </div>
           <span class="badge-tag badge-blue" id="rmseChartBadge">Feature Progression</span>
         </div>
@@ -246,7 +246,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <h3><i class="fa-solid fa-arrow-trend-up" style="color: var(--accent-emerald);"></i> R-squared by Number of Features</h3>
-            <div class="card-subtitle" id="r2ChartSubtitle">Higher is better. Climbs from 0.53 at k=1 to ~1.000 at k=6.</div>
+            <div class="card-subtitle" id="r2ChartSubtitle">Higher is better. LassoCV peaks at k=6; Forward SFS at k=7; Pearson at k=8.</div>
           </div>
           <span class="badge-tag badge-green" id="r2ChartBadge">Peak at k=6</span>
         </div>
@@ -484,7 +484,7 @@
               <tr>
                 <td><strong>5. Evaluation</strong></td>
                 <td>Parsimony & 95% Prediction Interval</td>
-                <td>Identified global sweet spot at k = 6 (Test RMSE = 0.0029, R² = 1.0000). Calculated exact 95% Prediction Interval: ŷ ± t_{crit} × √(s²(1 + x₀ᵀ(XᵀX)⁻¹x₀)) with 100.0% test coverage.</td>
+                <td>Identified per-algorithm optimal sweet spots: LassoCV k=6, Forward SFS k=7, Pearson k=8 — all achieving Test RMSE ≈ 0.0029, R² = 1.0000. Best-case sweet spot is LassoCV at k=6. Calculated exact 95% Prediction Interval: ŷ ± t_{crit} × √(s²(1 + x₀ᵀ(XᵀX)⁻¹x₀)) with 100.0% test coverage.</td>
               </tr>
               <tr>
                 <td><strong>6. Deployment</strong></td>
@@ -526,7 +526,7 @@
   </footer>
 
   <!-- Application Script -->
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 
 </body>
 </html>

@@ -6,8 +6,8 @@ window.DATASETS = {
     "name": "Student Performance",
     "target_name": "Productivity Score",
     "target_unit": "pts",
-    "description": "Kaggle Student Performance Prediction dataset evaluating academic, lifestyle, and behavioral factors. Parsimonious sweet spot at k=6 core predictors with 95% Prediction Interval.",
-    "badge_optimal": "k = 6 \u2605 Optimal Sweet Spot",
+    "description": "Kaggle Student Performance Prediction dataset evaluating academic, lifestyle, and behavioral factors. Best-case sweet spot at k=6 (LassoCV); Pearson reaches optimum at k=8, Forward SFS at k=7. All methods achieve near-zero RMSE with 95% Prediction Interval.",
+    "badge_optimal": "k = 6 \u2605 Best-Case Sweet Spot (LassoCV)",
     "badge_overfitting": "k = 17 \u26a0 Full Model",
     "k_labels": [
       "1",

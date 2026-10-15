@@ -67,6 +67,17 @@ function getActiveModelData() {
   return models[idx];
 }
 
+// Helper: Compute best k for a given algorithm (first k where cv_rmse reaches minimum plateau)
+function getAlgoBestK(algo) {
+  if (!window.MODEL_DATA) return 6;
+  const key = (!algo || algo === 'ALL') ? 'Pearson Correlation' : algo;
+  const models = window.MODEL_DATA[key];
+  if (!models || models.length === 0) return 6;
+  // First k where cv_rmse reaches the near-zero plateau (< 0.1)
+  const idx = models.findIndex(m => m.cv_rmse < 0.1);
+  return idx !== -1 ? (idx + 1) : 6;
+}
+
 // DOM Initialization
 document.addEventListener('DOMContentLoaded', () => {
   const ds = getCurrentDataset();
@@ -93,6 +104,7 @@ function setupEventListeners() {
       tabs.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentAlgo = btn.dataset.algo;
+      updateKButtonSweetSpot(); // update sweet-spot label without changing currentK
       updateDashboard();
     });
   });
@@ -164,7 +176,7 @@ function initMethodFilterChips() {
   }
 }
 
-// Render dynamic k-selection buttons (k = 1..17)
+// Render dynamic k-selection buttons (k = 1..17) — called once on init
 function renderKButtons() {
   const container = document.getElementById('kSelectorGroup');
   const ds = getCurrentDataset();
@@ -172,13 +184,14 @@ function renderKButtons() {
   container.innerHTML = '';
 
   const totalFeatures = ds.features.length; // 17
+  const initBestK = getAlgoBestK(currentAlgo); // best k for initial algo
 
   for (let k = 1; k <= totalFeatures; k++) {
     const btn = document.createElement('button');
     btn.className = 'k-btn';
     btn.dataset.k = k;
 
-    if (k === ds.sweet_spot_k) {
+    if (k === initBestK) {
       btn.classList.add('sweet-spot');
       btn.innerHTML = `k = ${k} ★ Sweet Spot <span style="font-size: 11px; font-weight: 700;">(Min RMSE)</span>`;
     } else if (k === ds.overfitting_k) {
@@ -203,6 +216,40 @@ function renderKButtons() {
 
     container.appendChild(btn);
   }
+}
+
+// Update which k-button shows the Sweet Spot label for the current algorithm
+// Does NOT rebuild buttons or change currentK — preserves user selection
+function updateKButtonSweetSpot() {
+  const container = document.getElementById('kSelectorGroup');
+  const ds = getCurrentDataset();
+  if (!container || !ds) return;
+
+  const newBestK = getAlgoBestK(currentAlgo);
+
+  container.querySelectorAll('.k-btn').forEach(btn => {
+    const k = parseInt(btn.dataset.k, 10);
+    const isActive = btn.classList.contains('active');
+
+    // Reset all non-overfitting buttons to plain state first
+    if (k !== ds.overfitting_k) {
+      btn.classList.remove('sweet-spot');
+      if (k === 1) {
+        btn.innerHTML = `k = 1 <span style="font-size: 11px;">(Study Hours)</span>`;
+      } else {
+        btn.innerHTML = `k = ${k} <span style="font-size: 11px;">(${k} Predictors)</span>`;
+      }
+    }
+
+    // Apply sweet-spot to new best k
+    if (k === newBestK) {
+      btn.classList.add('sweet-spot');
+      btn.innerHTML = `k = ${k} ★ Sweet Spot <span style="font-size: 11px; font-weight: 700;">(Min RMSE)</span>`;
+    }
+
+    // Restore active class (user selection is unchanged)
+    if (isActive) btn.classList.add('active');
+  });
 }
 
 // Initialize All Chart.js Instances
@@ -884,10 +931,11 @@ function updateDashboard() {
     r2Note.textContent = `Explains ${(data.r2 * 100).toFixed(2)}% of productivity score variance`;
   }
 
-  // 2. Badges
+  // 2. Badges (use per-algo best k instead of global sweet_spot_k)
+  const algoBestK = getAlgoBestK(currentAlgo);
   const rmseBadge = document.getElementById('rmseBadge');
   if (rmseBadge) {
-    if (currentK === ds.sweet_spot_k) {
+    if (currentK === algoBestK) {
       rmseBadge.className = 'badge-tag badge-green';
       rmseBadge.innerHTML = '<i class="fa-solid fa-award"></i> Optimal Sweet Spot';
     } else if (currentK === ds.overfitting_k) {
@@ -914,18 +962,18 @@ function updateDashboard() {
     });
   }
 
-  // 4. Parsimony Explanation Notice
+  // 4. Parsimony Explanation Notice (per-algo sweet spot)
   const notice = document.getElementById('parsimonyNotice');
   if (notice) {
-    if (currentK === ds.sweet_spot_k) {
+    if (currentK === algoBestK) {
       notice.className = 'badge-tag badge-green';
-      notice.innerHTML = `<i class="fa-solid fa-star"></i> Occam's Razor: 6 core predictors achieve near-zero RMSE (${data.rmse.toFixed(4)}) and perfect generalization (CV RMSE: ${data.cv_rmse.toFixed(4)}).`;
-    } else if (currentK > ds.sweet_spot_k) {
+      notice.innerHTML = `<i class="fa-solid fa-star"></i> Occam's Razor: ${algoBestK}-feature sweet spot for ${currentAlgo === 'ALL' ? 'Pearson Correlation' : currentAlgo} — near-zero RMSE (${data.rmse.toFixed(4)}), CV RMSE: ${data.cv_rmse.toFixed(4)}.`;
+    } else if (currentK > algoBestK) {
       notice.className = 'badge-tag badge-amber';
-      notice.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Redundant Features (${currentK} predictors): Adding noise features does not reduce RMSE and consumes degrees of freedom.`;
+      notice.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Redundant Features (${currentK} predictors): Beyond the ${algoBestK}-feature sweet spot for ${currentAlgo === 'ALL' ? 'Pearson Correlation' : currentAlgo}. Adding noise features does not reduce RMSE.`;
     } else {
       notice.className = 'badge-tag badge-blue';
-      notice.innerHTML = `<i class="fa-solid fa-circle-info"></i> Underfitting (${currentK} predictors): Missing key lifestyle and study predictors; RMSE is elevated (${data.rmse.toFixed(2)}).`;
+      notice.innerHTML = `<i class="fa-solid fa-circle-info"></i> Underfitting (${currentK} predictors): Missing key predictors for ${currentAlgo === 'ALL' ? 'Pearson Correlation' : currentAlgo}; RMSE is elevated (${data.rmse.toFixed(2)}).`;
     }
   }
 
