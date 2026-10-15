@@ -1,0 +1,5 @@
+method,best_k,cv_rmse,cv_rmse_std,cv_r2,cv_r2_std,test_rmse,test_r2,elapsed_sec,selected_features
+Pearson,3,10.4636,1.8892,-0.435,0.59,11.9676,-0.2021,0.3,age; RPDE; DFA
+F-test,3,10.4636,1.8892,-0.435,0.59,11.9676,-0.2021,0.3,age; RPDE; DFA
+LassoCV,3,10.0624,2.6261,-0.2535,0.4947,11.9676,-0.2021,6.8,age; RPDE; DFA
+RFE,1,10.5076,2.9151,-0.3473,0.5096,11.5551,-0.1207,1.3,Shimmer:DDA

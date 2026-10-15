@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Performance: Multiple Linear Regression & Feature Selection Explorer (HW2)</title>
+  
+  <!-- Google Fonts: Outfit, Inter, Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js 4.4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Project Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Calculated Model Data from local CSV (No hardcoding) -->
+  <script src="model_data.js"></script>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div>
+        <div class="breadcrumbs">
+          <a href="#"><i class="fa-solid fa-house"></i> Home</a>
+          <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+          <a href="#">Regression Analysis</a>
+          <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+          <span id="headerBreadcrumb" style="color: var(--slate-800); font-weight: 600;">Student Performance Feature Progression</span>
+        </div>
+        <div class="header-title-group">
+          <h1 id="headerTitle">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i>
+            Student Performance Multiple Linear Regression Explorer
+            <span class="brand-badge">CRISP-DM</span>
+          </h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="https://www.kaggle.com/competitions/student-performance-prediction-machine-learning-challenge/data" target="_blank" class="ref-btn">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          Kaggle Competition
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Dataset Information Summary Bar -->
+    <div class="dataset-switcher-bar">
+      <div class="dataset-switcher-content">
+        <span class="dataset-switcher-title" style="font-size: 15px; font-weight: 700; color: var(--slate-900);">
+          <i class="fa-solid fa-database" style="color: var(--primary);"></i>
+          Dataset: Student Performance Challenge (Productivity Score Prediction)
+        </span>
+      </div>
+      <div class="dataset-switcher-info" id="datasetQuickSummary">
+        <span class="badge-tag badge-blue"><i class="fa-solid fa-layer-group"></i> 16,000 Rows • 17 Predictors (k=1..17)</span>
+        <span class="badge-tag badge-purple"><i class="fa-solid fa-rotate"></i> 5-Fold Cross Validation</span>
+        <span class="badge-tag badge-green"><i class="fa-solid fa-award"></i> Optimal Sweet Spot: k = 6</span>
+        <span class="badge-tag badge-amber"><i class="fa-solid fa-shield-halved"></i> 95% Prediction Interval</span>
+      </div>
+    </div>
+
+    <!-- Hero Card Banner -->
+    <div class="hero-card">
+      <h2 id="heroTitle">Feature Selection & Parsimony Analysis</h2>
+      <p id="heroDescription">
+        Compare 6 Machine Learning Feature Selection Algorithms (<strong>Pearson Correlation</strong>, <strong>Forward SFS</strong>, <strong>LassoCV</strong>, <strong>RFECV</strong>, <strong>Exhaustive Search</strong>, and <strong>Baseline OLS</strong>) trained strictly on 80% partitioned training data. Pinpoint the <strong>6-feature optimal sweet spot</strong> (Study Hours, Focus Score, Sleep Hours, Phone Usage, Stress Level, Attendance Percentage) which achieves near-zero RMSE and R² ≈ 1.000, revealing the true underlying productivity equation while rejecting 11 noisy distractor attributes.
+      </p>
+      <div class="hero-tags" id="heroTagsContainer">
+        <span class="hero-pill"><i class="fa-solid fa-database"></i> 16,000 Samples (80/20 Train-Test Split)</span>
+        <span class="hero-pill"><i class="fa-solid fa-rotate"></i> 5-Fold Cross Validation</span>
+        <span class="hero-pill"><i class="fa-solid fa-layer-group"></i> 6 Selection Strategies</span>
+        <span class="hero-pill"><i class="fa-solid fa-star" style="color: #34d399;"></i> Global Sweet Spot: k = 6 (RMSE ≈ 0.0029, R² = 1.0000)</span>
+        <span class="hero-pill"><i class="fa-solid fa-shield-halved" style="color: #60a5fa;"></i> 95% Prediction Interval (100.0% Empirical Coverage)</span>
+      </div>
+    </div>
+
+    <!-- Controls Wrapper -->
+    <div class="controls-wrapper">
+      <span class="control-label"><i class="fa-solid fa-sliders"></i> 1. Select Feature Selection Algorithm</span>
+      <div class="tabs-pills" id="algoTabs">
+        <button class="tab-btn active" data-algo="Pearson Correlation">
+          <i class="fa-solid fa-chart-simple"></i> Pearson Correlation
+          <span class="badge-pill">Optimal k=8</span>
+        </button>
+        <button class="tab-btn" data-algo="Forward SFS">
+          <i class="fa-solid fa-arrow-trend-up"></i> Forward SFS
+          <span class="badge-pill">Optimal k=7</span>
+        </button>
+        <button class="tab-btn" data-algo="LassoCV">
+          <i class="fa-solid fa-filter"></i> LassoCV (L1 Regularized)
+          <span class="badge-pill">Optimal k=6</span>
+        </button>
+        <button class="tab-btn" data-algo="RFECV">
+          <i class="fa-solid fa-scissors"></i> RFECV
+          <span class="badge-pill">Backward RFE</span>
+        </button>
+        <button class="tab-btn" data-algo="Exhaustive Feature Selection">
+          <i class="fa-solid fa-magnifying-glass-chart"></i> Exhaustive Search
+          <span class="badge-pill">Best Subset</span>
+        </button>
+        <button class="tab-btn" data-algo="Baseline OLS">
+          <i class="fa-solid fa-scale-balanced"></i> Baseline OLS
+          <span class="badge-pill">Full Benchmark</span>
+        </button>
+        <button class="tab-btn" data-algo="ALL" style="border: 1.5px solid var(--cream-yellow-border); background: var(--cream-yellow); color: var(--cream-yellow-text);">
+          <i class="fa-solid fa-layer-group" style="color: var(--accent-amber);"></i> 🌟 Compare All 6 Methods
+        </button>
+      </div>
+
+      <!-- Method Filter Panel — only visible in Compare All 6 mode -->
+      <div id="methodFilterPanel" style="display:none; margin-top: 14px; padding: 14px 20px; background: var(--cream-subtle); border: 1px solid var(--slate-200); border-radius: var(--radius-lg);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.05em;">
+            <i class="fa-solid fa-filter" style="color: var(--primary);"></i> Filter Methods to Compare
+          </span>
+          <div style="display: flex; gap: 8px;">
+            <button id="filterSelectAll" style="font-size: 11px; padding: 4px 12px; border: 1px solid var(--slate-200); background: #ffffff; border-radius: var(--radius-pill); cursor: pointer; color: var(--slate-700); font-family: inherit; font-weight: 600;">All</button>
+            <button id="filterClearAll" style="font-size: 11px; padding: 4px 12px; border: 1px solid var(--slate-200); background: #ffffff; border-radius: var(--radius-pill); cursor: pointer; color: var(--slate-700); font-family: inherit; font-weight: 600;">None</button>
+          </div>
+        </div>
+        <div id="methodFilterChips" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        <div style="margin-top: 10px; font-size: 11.5px; color: var(--slate-500); font-style: italic;">
+          <i class="fa-solid fa-circle-info"></i> Toggle methods to compare progression curves on the dual charts.
+        </div>
+      </div>
+
+      <span id="kControlLabel" class="control-label" style="margin-top: 14px;"><i class="fa-solid fa-list-ol"></i> 2. Number of Features (k = 1 to 17)</span>
+      <div class="k-selector-group" id="kSelectorGroup">
+        <!-- Dynamically rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- Metrics Ribbon -->
+    <div class="metrics-grid" id="metricsGrid">
+      <div class="metric-card sweet">
+        <div class="metric-title">
+          <span>Test RMSE</span>
+          <span class="badge-tag badge-green" id="rmseBadge"><i class="fa-solid fa-award"></i> Optimal</span>
+        </div>
+        <div class="metric-val" id="valRMSE">0.0029</div>
+        <div class="metric-note">
+          <span>Lower is better (Out-of-sample error)</span>
+        </div>
+      </div>
+
+      <div class="metric-card sweet">
+        <div class="metric-title">
+          <span>Test R² Score</span>
+          <span class="badge-tag badge-blue"><i class="fa-solid fa-circle-check"></i> 100.0% Fit</span>
+        </div>
+        <div class="metric-val" id="valR2">1.0000</div>
+        <div class="metric-note">
+          <span id="r2MetricNote">Explains 100.00% of productivity variance</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">
+          <span>Adjusted R²</span>
+          <i class="fa-solid fa-scale-balanced" style="color: var(--slate-400);"></i>
+        </div>
+        <div class="metric-val" id="valAdjR2">1.0000</div>
+        <div class="metric-note">
+          <span>Penalizes redundant parameters</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">
+          <span>Mean Absolute Error</span>
+          <i class="fa-solid fa-calculator" style="color: var(--slate-400);"></i>
+        </div>
+        <div class="metric-val" id="valMAE">0.0025</div>
+        <div class="metric-note">
+          <span>Average test prediction error</span>
+        </div>
+      </div>
+
+      <div class="metric-card purple">
+        <div class="metric-title">
+          <span>5-Fold CV RMSE</span>
+          <span class="badge-tag badge-purple"><i class="fa-solid fa-rotate"></i> Cross-Val</span>
+        </div>
+        <div class="metric-val" id="valCVRMSE">0.0029</div>
+        <div class="metric-note">
+          <span>Minimum CV generalization error</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">
+          <span>F-Statistic</span>
+          <span class="badge-tag badge-green">p &lt; 0.0001</span>
+        </div>
+        <div class="metric-val" id="valFStat">&gt; 10⁶</div>
+        <div class="metric-note">
+          <span>Overall regression significance</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Features Chips & Parsimony Ribbon -->
+    <div style="background: #ffffff; border: 1px solid var(--slate-200); border-radius: var(--radius-xl); padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--slate-700);">
+          <i class="fa-solid fa-check-double" style="color: var(--primary);"></i> Active Predictors (<span id="featuresCount">6</span>):
+        </span>
+        <div id="featuresListChips" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div id="parsimonyNotice" class="badge-tag badge-green" style="font-size: 12px; padding: 6px 14px;">
+        <i class="fa-solid fa-star"></i> Occam's Razor: 6-feature model minimizes cross-validation and test RMSE.
+      </div>
+    </div>
+
+    <!-- Dual Charts Section (Chart.js Interactive Plots) -->
+    <div class="dual-charts-grid">
+      <!-- Left Chart: RMSE -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> RMSE by Number of Features</h3>
+            <div class="card-subtitle" id="rmseChartSubtitle">Lower is better. Sharp drop to valley at k=6, flat floor for k &gt; 6.</div>
+          </div>
+          <span class="badge-tag badge-blue" id="rmseChartBadge">Feature Progression</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="rmseChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Right Chart: R-squared -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3><i class="fa-solid fa-arrow-trend-up" style="color: var(--accent-emerald);"></i> R-squared by Number of Features</h3>
+            <div class="card-subtitle" id="r2ChartSubtitle">Higher is better. Climbs from 0.53 at k=1 to ~1.000 at k=6.</div>
+          </div>
+          <span class="badge-tag badge-green" id="r2ChartBadge">Peak at k=6</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="r2Chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: Actual vs Predicted with 95% Prediction Interval Chart -->
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <div class="card-title-group">
+          <h3><i class="fa-solid fa-chart-scatter" style="color: var(--primary);"></i> Actual vs. Predicted Productivity with 95% Prediction Interval</h3>
+          <div class="card-subtitle">Out-of-sample test set observations (N = 3,200), 45° ideal reference line (y = ŷ), and statistically computed 95% Prediction Interval envelope: ŷ ± t_{0.975} × SE_{pred}.</div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <span class="badge-tag badge-green" id="piCoverageBadge"><i class="fa-solid fa-check-double"></i> 100.0% Test Set PI Coverage</span>
+          <span class="badge-tag badge-blue"><i class="fa-solid fa-shield-halved"></i> 95% PI (±t·SE_pred)</span>
+        </div>
+      </div>
+      <div class="chart-container" style="height: 380px;">
+        <canvas id="actualVsPredChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Mathematical Equation Card -->
+    <div class="equation-card" style="margin-top: 24px;">
+      <div class="equation-title">
+        <i class="fa-solid fa-square-root-variable"></i> Fitted OLS Regression Equation
+      </div>
+      <div class="equation-formula" id="equationBox">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- Interactive Grid: Tables & Live Predictor -->
+    <div class="calc-grid">
+      
+      <!-- Left: Model Coefficients & Statistical Tests Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Model Coefficients & Statistical Tests</h3>
+            <div class="card-subtitle">Parameter estimates, standard errors, t-statistics, p-values, 95% Confidence Intervals, and VIF multicollinearity metrics.</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="coefTable">
+            <thead>
+              <tr>
+                <th>Predictor</th>
+                <th>Estimate (β)</th>
+                <th>Std. Error</th>
+                <th>t-Stat</th>
+                <th>p-Value</th>
+                <th>95% Conf. Int</th>
+                <th>VIF</th>
+              </tr>
+            </thead>
+            <tbody id="coefTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Live Student Productivity Predictor with 95% Prediction Interval -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3><i class="fa-solid fa-calculator" style="color: var(--accent-emerald);"></i> <span id="livePredictorTitle">Live Student Productivity Predictor</span></h3>
+            <div class="card-subtitle" id="livePredictorSubtitle">Real-time prediction with statistically calculated 95% Prediction Interval for active model.</div>
+          </div>
+          <span class="badge-tag badge-green"><i class="fa-solid fa-bolt"></i> Real-time</span>
+        </div>
+
+        <div id="livePredictorCardContent">
+          <!-- Dynamic Predictor Inputs (Populated by JavaScript) -->
+          <div id="livePredictorInputs">
+            <!-- Dynamically populated based on active features -->
+          </div>
+
+          <!-- Prediction Output Card -->
+          <div class="prediction-output-box">
+            <div class="pred-label" id="predOutputLabel">Predicted Student Productivity Score</div>
+            <div class="pred-value" id="predProfitOutput">50.00 pts</div>
+            
+            <!-- 95% Prediction Interval Display -->
+            <div id="predPIOutput" style="margin-top: 10px; padding: 10px 14px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md);">
+              <!-- Dynamically populated with [lower, upper] and margin -->
+            </div>
+
+            <div class="pred-formula-note" id="predFormulaNote" style="margin-top: 12px;">
+              <!-- Formula decomposition -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Residual Diagnostics & Top 10 Outliers -->
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <div class="card-title-group">
+          <h3><i class="fa-solid fa-magnifying-glass" style="color: var(--accent-amber);"></i> Test Set Residuals & Outliers Diagnostic</h3>
+          <div class="card-subtitle" id="residualsSubtitle">Out-of-sample test set residuals (3,200 samples), ranked by absolute error with 95% Prediction Interval containment check.</div>
+        </div>
+        <span class="badge-tag badge-blue"><i class="fa-solid fa-filter"></i> Ranked by |Residual|</span>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Sample ID</th>
+              <th id="thActual">Actual Score</th>
+              <th id="thPredicted">Predicted Score</th>
+              <th id="thResidual">Residual</th>
+              <th>Abs Error</th>
+              <th>% Error</th>
+              <th>95% PI Diagnostic</th>
+            </tr>
+          </thead>
+          <tbody id="outliersTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Additional Analysis Section -->
+    <section id="additionalSection" class="additional-section">
+      <div class="section-header">
+        <h2><i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> Additional Analysis & Publication Figures</h2>
+        <p>Diagnostic visualizations, correlation matrices, consensus heatmaps, and publication-ready figures generated from the local Python pipeline.</p>
+      </div>
+
+      <div class="additional-grid" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));">
+        
+        <!-- Heatmap: Correlation Matrix -->
+        <div class="analysis-img-card">
+          <div class="img-wrapper">
+            <img id="imgCorrelation" src="results/correlation_heatmap.png" alt="Correlation Heatmap">
+          </div>
+          <div class="analysis-card-body">
+            <h4><i class="fa-solid fa-fire-flame-curved" style="color: #ef4444;"></i> Correlation Matrix Heatmap</h4>
+            <p id="descCorrelation">
+              Shows strong linear relationship between <strong>Study Hours and Productivity (r = 0.73)</strong>, Focus Score (r = 0.42), Sleep Hours (r = 0.34), and Attendance (r = 0.17). Negative correlation with Phone Usage (r = -0.33) and Stress (r = -0.20). Distractor features (coffee, age, final grade) show r ≈ 0.
+            </p>
+          </div>
+        </div>
+
+        <!-- Heatmap: Selected Features Heatmap -->
+        <div class="analysis-img-card">
+          <div class="img-wrapper">
+            <img id="imgConsensus" src="results/figure4_selected_features_heatmap.png" alt="Selected Features Heatmap">
+          </div>
+          <div class="analysis-card-body">
+            <h4><i class="fa-solid fa-table-cells" style="color: var(--primary);"></i> Feature Selection Consensus Matrix</h4>
+            <p id="descConsensus">
+              Compares binary feature choices across all 6 methods. Notice that <strong>Study Hours, Focus Score, Sleep Hours, Phone Usage, Stress Level, and Attendance Percentage are unanimously selected</strong> (100% agreement) by all 6 algorithms.
+            </p>
+          </div>
+        </div>
+
+        <!-- Comparison Bar Chart: Final Model Comparison -->
+        <div class="analysis-img-card">
+          <div class="img-wrapper">
+            <img id="imgComparison" src="results/figure3_final_model_comparison.png" alt="Final Model Comparison">
+          </div>
+          <div class="analysis-card-body">
+            <h4><i class="fa-solid fa-chart-column" style="color: var(--accent-emerald);"></i> 6-Method Model Performance Comparison</h4>
+            <p id="descComparison">
+              Dual-bar visualization contrasting Test RMSE (indigo) and Test R² (emerald). All 6 methods converge on the 6 core features achieving Test RMSE = 0.0029 and R² = 1.0000.
+            </p>
+          </div>
+        </div>
+
+        <!-- NEW: Actual vs Predicted with 95% PI Graphic -->
+        <div class="analysis-img-card">
+          <div class="img-wrapper">
+            <img id="imgActualVsPred" src="results/figure7_actual_vs_predicted_pi.png" alt="Actual vs Predicted with 95% PI">
+          </div>
+          <div class="analysis-card-body">
+            <h4><i class="fa-solid fa-shield-halved" style="color: #047857;"></i> Actual vs. Predicted & 95% Prediction Interval</h4>
+            <p id="descActualVsPred">
+              Scatter plot of actual observations vs model predictions on the 3,200 test samples, paired with sorted prediction ribbon displaying the statistical 95% Prediction Interval: ŷ ± t_{0.975} × SE_{pred}. Achieves 100.0% empirical test set coverage.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Methodology & CRISP-DM Verification Card -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3><i class="fa-solid fa-microscope" style="color: var(--primary);"></i> Experimental Methodology & CRISP-DM Protocol Verification</h3>
+            <div class="card-subtitle">Summary of data preprocessing, splitting constraints, and evaluation rules.</div>
+          </div>
+          <span class="badge-tag badge-green"><i class="fa-solid fa-shield-halved"></i> Verified Intact</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>CRISP-DM Phase</th>
+                <th>Experimental Component</th>
+                <th>Implementation & Protocol Detail</th>
+              </tr>
+            </thead>
+            <tbody id="methodologyTableBody">
+              <tr>
+                <td><strong>1. Business Understanding</strong></td>
+                <td>Productivity Score Prediction</td>
+                <td>Predict student academic productivity from lifestyle, academic, and behavioral metrics using Multiple Linear Regression.</td>
+              </tr>
+              <tr>
+                <td><strong>2. Data Understanding</strong></td>
+                <td>Exploratory Data Analysis (EDA)</td>
+                <td>16,000 complete records with zero missing values. Pairwise correlation heatmap reveals strong correlations with study hours, focus, sleep, phone, stress, and attendance.</td>
+              </tr>
+              <tr>
+                <td><strong>3. Data Preparation</strong></td>
+                <td>Partition & Dummy Encoding</td>
+                <td>80% Train (12,800 rows) / 20% Test (3,200 rows) with fixed <code>random_state=42</code>. Categorical <code>gender</code> encoded via dummy variables (Female as reference).</td>
+              </tr>
+              <tr>
+                <td><strong>4. Modeling</strong></td>
+                <td>6 Feature Selection Strategies</td>
+                <td>Pearson Correlation, Forward SFS, LassoCV, RFECV, Exhaustive Best Subset Search (Gram matrix CV), and Baseline OLS. Feature ranking strictly fitted on training split only.</td>
+              </tr>
+              <tr>
+                <td><strong>5. Evaluation</strong></td>
+                <td>Parsimony & 95% Prediction Interval</td>
+                <td>Identified global sweet spot at k = 6 (Test RMSE = 0.0029, R² = 1.0000). Calculated exact 95% Prediction Interval: ŷ ± t_{crit} × √(s²(1 + x₀ᵀ(XᵀX)⁻¹x₀)) with 100.0% test coverage.</td>
+              </tr>
+              <tr>
+                <td><strong>6. Deployment</strong></td>
+                <td>GitHub Pages & Interactive Predictor</td>
+                <td>Pure Vanilla HTML5/CSS/JS web deployment with real-time interactive predictor and Chart.js visualizations. Model serialized as <code>student_productivity_model.pkl</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Footer & References -->
+  <footer>
+    <div class="footer-inner">
+      <div style="max-width: 650px;">
+        <h4 style="font-size: 16px; margin-bottom: 8px; color: var(--slate-900);">
+          <i class="fa-solid fa-building-columns"></i> HW2: Student Performance Multiple Linear Regression
+        </h4>
+        <p style="line-height: 1.6; font-size: 13px; color: var(--slate-600);">
+          Developed for multiple linear regression model selection, parsimony validation, statistical inference, and 95% prediction interval estimation following the CRISP-DM methodology. Built with pure Vanilla HTML5, CSS3, JavaScript, and Chart.js, ready for deployment on GitHub Pages.
+        </p>
+      </div>
+
+      <div style="max-width: 580px;">
+        <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-400); margin-bottom: 8px;">
+          References & Acknowledgments
+        </h4>
+        <div class="ack-card">
+          <strong>Dataset Source:</strong> <a href="https://www.kaggle.com/competitions/student-performance-prediction-machine-learning-challenge/data" target="_blank">Kaggle Student Performance Prediction Challenge</a>.<br>
+          <strong>Methodology:</strong> CRISP-DM (Cross-Industry Standard Process for Data Mining).<br>
+          <strong>Course:</strong> Data Inference & Computing (DIC) — Homework 2 (Multiple Linear Regression).
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Script -->
+  <script src="app.js"></script>
+
+</body>
+</html>

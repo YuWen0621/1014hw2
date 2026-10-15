@@ -1,0 +1,7 @@
+﻿,age,study_hours_per_day,sleep_hours,phone_usage_hours,social_media_hours,youtube_hours,gaming_hours,breaks_per_day,exercise_minutes,assignments_completed,attendance_percentage,stress_level,focus_score,study_efficiency,screen_distraction_index,gender_Male,gender_Other
+Pearson Correlation,0,1,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0
+Forward SFS,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0
+LassoCV,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0
+RFECV,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0
+Exhaustive Feature Selection,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0
+Baseline OLS,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0
