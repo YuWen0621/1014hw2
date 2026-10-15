@@ -190,7 +190,7 @@ $$\begin{aligned}
 
 ## 💻 6. 網站功能與互動操作 (Web Application)
 
-使用者可透過瀏覽器造訪 [GitHub Pages 網站](https://yuwen0621.github.io/1014_DIC/) 進行以下操作：
+使用者可透過瀏覽器造訪 [GitHub Pages 網站](https://yuwen0621.github.io/1014hw2/) 進行以下操作：
 
 1. **演算法切換與最佳 $k$ 動態連動：**
    - 點選頂端 6 大特徵選取標籤（Pearson、Forward SFS、LassoCV 等）或「🌟 Compare All 6 Methods」。
